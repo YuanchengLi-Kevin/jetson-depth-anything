@@ -3,6 +3,7 @@ tags:
   - capstone
   - proposal
   - edge-ai
+  - 3d-reconstruction
 status: draft
 ---
 
@@ -10,70 +11,83 @@ status: draft
 
 ## Working title
 
-**Optimizing Depth Anything V2 for Real-Time Monocular Depth Estimation on the Jetson Orin Nano Super**
+**Live Monocular 3D Reconstruction with Depth Anything V2 on the Jetson Orin Nano Super**
 
 ## Project summary
 
-This project will deploy Depth Anything V2 Small on a Jetson Orin Nano Super for live monocular depth estimation. It will compare an unoptimized PyTorch implementation with an edge-optimized TensorRT FP16 implementation and quantify the trade-offs among speed, latency, resource use, power consumption, and depth quality.
+This project will investigate whether monocular metric-depth predictions can support live, room-scale 3D reconstruction on a resource-constrained edge platform. An RGB camera connected to a Jetson Orin Nano Super will provide frames to the indoor metric Depth Anything V2 Small model. Each predicted depth map will be converted into a synthetic RGB-D frame, tracked with RGB-D odometry, and fused into a colored truncated signed distance function (TSDF) volume. The accumulated result will be displayed and exported as a point cloud.
 
-The final system will accept video from a USB or CSI camera, generate stable depth maps, and use them in a simple obstacle-warning or navigation demonstration.
-
-## Motivation
-
-Monocular depth estimation can add spatial awareness to systems that have only a conventional RGB camera. Running it at the edge avoids dependence on cloud connectivity and can reduce latency, but it introduces strict constraints on compute, memory, power, and thermal performance.
-
-The project is therefore not merely about running one image through a pretrained model. Its central engineering problem is adapting and evaluating a transformer-based vision model on a resource-constrained embedded platform.
+The central contribution is not simply running a pretrained model. It is the design and evaluation of a complete reconstruction pipeline in which model error, camera calibration, pose drift, fusion parameters, latency, memory, power, and thermal behavior all affect the final map.
 
 ## Research question
 
-> How effectively can Depth Anything V2 be optimized for real-time monocular depth estimation on a resource-constrained edge platform?
+> How accurately and efficiently can monocular metric-depth predictions be tracked and fused into a live local 3D reconstruction on a resource-constrained edge platform?
+
+## Motivation
+
+Dense 3D reconstruction normally depends on an RGB-D, stereo, or LiDAR sensor. Monocular depth estimation offers a lower-cost alternative using a conventional RGB camera, but depth predictions can be biased or temporally inconsistent. Small per-frame errors can become more damaging when frames are registered and accumulated.
+
+[Depth Anything V2](https://arxiv.org/abs/2406.09414) provides models at several scales and separately fine-tuned metric-depth checkpoints. The [official metric-depth implementation](https://github.com/DepthAnything/Depth-Anything-V2/tree/main/metric_depth) includes a 24.8-million-parameter Small model trained for indoor scenes using Hypersim. The [Jetson Orin Nano Super](https://developer.nvidia.com/blog/nvidia-jetson-orin-nano-developer-kit-gets-a-super-boost/) provides an Ampere GPU, 8 GB of shared memory, and a 25 W performance mode, making it a plausible but constrained platform for combining learned depth, tracking, fusion, and visualization.
 
 ## Objectives
 
-1. Deploy Depth Anything V2 Small on the Jetson Orin Nano Super.
-2. Establish PyTorch FP32 and FP16 performance baselines.
-3. Export and optimize the model using ONNX and TensorRT FP16.
-4. Build a live camera pipeline with independently timed stages.
-5. Measure performance, resource use, power, thermals, and depth quality.
-6. Demonstrate a practical use of the resulting depth stream.
-7. Explain the accuracy–speed trade-offs introduced by optimization.
+1. Calibrate the selected RGB camera and preserve its intrinsic and distortion parameters.
+2. Deploy the indoor metric Depth Anything V2 Small checkpoint on the Jetson.
+3. Back-project metric-depth predictions into correctly scaled colored point clouds.
+4. Estimate camera motion from consecutive synthetic RGB-D frames.
+5. Fuse accepted keyframes into a bounded TSDF volume.
+6. Display and save an accumulated room-scale point cloud and camera trajectory.
+7. Quantify single-frame depth error, reconstruction geometry, planar consistency, tracking stability, and drift.
+8. Measure latency, throughput, memory, power, and temperature.
+9. Analyze which errors arise from depth prediction, calibration, tracking, fusion, or resource constraints.
 
-## Scope
+## Completion tiers
 
 ### Minimum viable result
 
-- Live camera input on the Jetson
-- Stable depth-map output from Depth Anything V2 Small
-- PyTorch FP32/FP16 baseline
-- TensorRT FP16 deployment
-- Reproducible benchmark results
+- Calibrated camera with saved intrinsics, distortion coefficients, and calibration error
+- Live metric-depth inference from Depth Anything V2 Small
+- Correct per-frame colored point-cloud projection
+- Reproducible offline odometry and TSDF fusion on a recorded sequence
+- Measured-distance evaluation of single-frame depth
+- Exported PLY point cloud and estimated camera trajectory
 
-### Strong final result
+### Target final result
 
-- Obstacle-warning or navigation demonstration
-- Accuracy validation against measured distances or an RGB-D sensor
-- Performance graphs across input resolutions and power modes
-- Analysis of accuracy versus throughput, latency, power, and temperature
+- Live camera-motion estimation and bounded room-scale TSDF fusion on the Jetson
+- Live display of the accumulated point cloud
+- TensorRT FP16 depth inference
+- Quantitative geometry, plane, stability, drift, latency, memory, power, and thermal results
+- Comparison of depth resolution and TSDF voxel size
+- A justified recommendation for the most useful quality-performance configuration
 
 ### Stretch goals
 
-- TensorRT INT8 quantization
-- ROS 2 depth-image publishing
-- Depth-aware object detection
-- Comparison with stereo or RGB-D depth
-- Approximate metric depth using calibration
+- CUDA-enabled Open3D build on ARM64
+- ORB-SLAM3 RGB-D tracking with loop closure or relocalization
+- RGB-D reference-camera validation
+- Mesh extraction and color refinement
+- Multi-room or outdoor reconstruction
 
 ## Expected contribution
 
-The project will produce a reproducible deployment workflow and a measured account of how well Depth Anything V2 Small performs on the Jetson Orin Nano Super. The contribution lies in optimization, systems integration, and evaluation rather than in training a new foundation model.
+The project will produce a reproducible workflow for converting monocular metric-depth predictions into a live local 3D map on embedded hardware. Its capstone value lies in systems integration and experimental analysis: it will show whether frame-level depth quality is sufficient for multi-frame reconstruction, how errors accumulate, and which configuration best balances geometry quality with edge-device performance.
 
 ## Success criteria
 
-- The system processes a live camera stream without exhausting device memory.
-- TensorRT FP16 improves inference performance over the PyTorch baseline.
-- Benchmarks report both model inference time and end-to-end latency.
-- Depth quality before and after conversion is compared quantitatively or through a controlled validation protocol.
-- The final demonstration connects the depth output to a practical task.
+- The camera calibration has mean reprojection error below 0.5 pixels.
+- Per-frame point clouds are correctly oriented, colored, and expressed in metres.
+- A recorded sequence reconstructs reproducibly before live fusion is attempted.
+- The live system estimates poses and displays an accumulated point cloud while the camera moves.
+- At least 80% of processed frame pairs in the normal-light test trajectory produce successful odometry estimates.
+- A 15-minute mapping run completes without an out-of-memory failure or unbounded latency growth.
+- At least five measured dimensions and three planar surfaces are evaluated quantitatively.
+- PyTorch-to-TensorRT depth differences and their effect on reconstruction are reported.
+- Conclusions distinguish depth, calibration, tracking, fusion, and platform limitations.
+
+## Boundaries
+
+The target is a bounded local map of one small indoor room, not a persistent full-SLAM or survey-grade system. Loop closure, relocalization, dynamic-scene reconstruction, and guaranteed metric accuracy are outside the required scope.
 
 ## Related notes
 
@@ -81,4 +95,3 @@ The project will produce a reproducible deployment workflow and a measured accou
 - [[Deployment Plan]]
 - [[Evaluation Plan]]
 - [[Risks and Limitations]]
-
