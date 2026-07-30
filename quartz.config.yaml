@@ -215,6 +215,8 @@ plugins:
       group: toolbar
   - source: "@quartz-community/breadcrumbs"
     enabled: true
+    options:
+      spacerSymbol: ""
     layout:
       position: beforeBody
       priority: 5

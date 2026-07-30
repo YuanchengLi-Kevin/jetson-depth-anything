@@ -1,11 +1,212 @@
 @use "./variables.scss" as *;
 
-// Keep the graph from preserving its desktop canvas width when the responsive
-// layout moves the right sidebar below the article.
-@media all and (max-width: 800px) {
-  .page > #quartz-body .sidebar.right > * {
+// Keep quoted text comfortably separated from the accent rule.
+.markdown-preview-view blockquote {
+  padding-inline-start: 1.25rem;
+}
+
+// The Obsidian-oriented theme treats metadata properties as flex rows. Restore
+// the semantic table layout used by Quartz's note-properties component.
+.note-properties.metadata-container {
+  margin: 0.75rem 0 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--lightgray);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--light) 96%, var(--lightgray));
+
+  &[open] > .note-properties-header {
+    border-bottom-color: var(--lightgray);
+  }
+
+  .note-properties-header {
+    padding: 0.5rem 0.75rem;
+    background: color-mix(in srgb, var(--light) 92%, var(--lightgray));
+  }
+
+  .note-properties-table {
+    margin: 0;
+    border: 0;
+  }
+
+  tr.note-properties-row.metadata-property {
+    display: table-row;
+    border-bottom: 1px solid var(--lightgray);
+    background: transparent;
+  }
+
+  td.note-properties-key.metadata-property-key,
+  td.note-properties-value.metadata-property-value {
+    display: table-cell;
+    min-height: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  td.note-properties-key.metadata-property-key {
+    width: 28%;
+    padding: 0.45rem 0.75rem;
+    font-weight: 600;
+  }
+
+  td.note-properties-value.metadata-property-value {
+    padding: 0.45rem 0.75rem;
+  }
+
+  .note-properties-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    width: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .note-properties-tags .note-properties-separator {
+    display: none;
+  }
+
+  .note-properties-tags .tag-link {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0.12rem 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--secondary) 28%, transparent);
+    border-radius: 999px;
+    line-height: 1.35;
+  }
+}
+
+// Draw breadcrumb separators instead of relying on a glyph supplied by the
+// active font.
+.breadcrumb-element > p {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.4rem;
+  height: 0.7rem;
+  margin-left: 0.5rem;
+  font-size: 0;
+
+  &::before {
+    content: "";
+    width: 0.35rem;
+    height: 0.35rem;
+    border-top: 1.5px solid var(--gray);
+    border-right: 1.5px solid var(--gray);
+    transform: rotate(45deg);
+  }
+}
+
+.right-sidebar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 0.5rem;
+  background: var(--light);
+  color: var(--darkgray);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--lightgray);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--secondary);
+    outline-offset: 2px;
+  }
+}
+
+.right-sidebar-toggle-icon {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 auto;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 160ms ease;
+}
+
+html[data-right-sidebar="expanded"] .right-sidebar-toggle-icon {
+  transform: rotate(135deg);
+}
+
+.right-sidebar-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.2rem;
+
+  &[hidden] {
+    display: none !important;
+  }
+}
+
+@media all and (min-width: 1201px) {
+  html[data-right-sidebar="collapsed"] .page > #quartz-body:has(> .right-sidebar-shell) {
+    grid-template-columns: $sidePanelWidth minmax(0, 1fr) 3rem;
+  }
+
+  .page > #quartz-body > .right-sidebar-shell {
+    padding-left: 1rem;
+  }
+
+  html[data-right-sidebar="collapsed"] .page > #quartz-body > .right-sidebar-shell {
+    align-items: center;
+    padding-right: 0.35rem;
+    padding-left: 0.35rem;
+  }
+
+  html[data-right-sidebar="collapsed"] .right-sidebar-toggle {
+    justify-content: center;
+    width: 2.3rem;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  html[data-right-sidebar="collapsed"] .right-sidebar-toggle-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+// Below the desktop breakpoint, page tools become a compact disclosure after
+// the article. Stack its contents so the graph and backlinks remain readable.
+@media all and (max-width: 1200px) {
+  .page > #quartz-body > .right-sidebar-shell {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    padding: 0;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .right-sidebar-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .right-sidebar-content > * {
+    width: 100%;
     min-width: 0;
     max-width: 100%;
+    max-height: none;
   }
 
   .graph,

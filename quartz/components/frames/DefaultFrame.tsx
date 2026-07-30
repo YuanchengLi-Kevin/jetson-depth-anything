@@ -49,11 +49,25 @@ export const DefaultFrame: PageFrame = {
             ))}
           </div>
         </div>
-        <div class="right sidebar">
-          {right.map((BodyComponent) => (
-            <BodyComponent {...componentData} />
-          ))}
-        </div>
+        {right.length > 0 && (
+          <aside class="right sidebar right-sidebar-shell" aria-label="Page tools">
+            <button
+              class="right-sidebar-toggle"
+              type="button"
+              aria-expanded="true"
+              aria-controls="right-sidebar-content"
+              aria-label="Hide page tools"
+            >
+              <span class="right-sidebar-toggle-icon" aria-hidden="true" />
+              <span class="right-sidebar-toggle-label">Page tools</span>
+            </button>
+            <div id="right-sidebar-content" class="right-sidebar-content">
+              {right.map((BodyComponent) => (
+                <BodyComponent {...componentData} />
+              ))}
+            </div>
+          </aside>
+        )}
         {footer.map((FooterComponent) => (
           <FooterComponent {...componentData} />
         ))}
