@@ -26,6 +26,25 @@ Calibrated RGB camera
 
 The system uses direct point-cloud accumulation. DA3 supplies coherent geometry and camera poses inside a window; [[Window Alignment and Mapping]] joins independent window coordinate frames.
 
+```mermaid
+flowchart LR
+    Camera["Calibrated RGB camera"] --> Capture["Capture and smooth preview"]
+    Capture --> Queue["Newest-frame queue<br/>bounded"]
+    Queue --> Select["Slow frame selection<br/>approximately 2 Hz"]
+    Select --> Assemble["Overlapping DA3 window"]
+    Assemble --> Pending["Pending-window queue<br/>maximum one"]
+    Pending --> Infer["DA3 Small inference<br/>one active window"]
+    Infer --> Validate["Output validation and<br/>confidence filtering"]
+    Validate --> Align["Shared-frame Sim(3)<br/>alignment gates"]
+    Align -->|accepted| Commit["Atomic map commit<br/>new-frame geometry only"]
+    Align -->|rejected| Preserve["Preserve last accepted<br/>map and overlap"]
+    Commit --> Bound["Consolidate and enforce<br/>30-window / 1M-point bounds"]
+    Bound --> Viewer["Independent live viewer"]
+    Bound --> Artifacts["PLY, trajectory,<br/>telemetry, and logs"]
+```
+
+The diagram emphasizes the two bounded queues, the single active inference, and the acceptance boundary. A rejection follows the preserve-state path and never reaches the map commit.
+
 ## Window state
 
 The primary configuration uses:

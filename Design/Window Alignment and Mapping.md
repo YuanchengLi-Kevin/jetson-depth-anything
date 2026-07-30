@@ -22,6 +22,23 @@ shared frames = [f2, f3]
 
 The 3-frame fallback advances by one frame and retains its final two frames. Shared source frames must use identical preprocessing and pixel grids in both predictions.
 
+```mermaid
+flowchart LR
+    A["Accepted window A<br/>f0, f1, f2, f3"] --> Shared["Identical shared frames<br/>f2, f3"]
+    B["Candidate window B<br/>f2, f3, f4, f5"] --> Shared
+    Shared --> Pairs["Same-pixel 3D pairs<br/>global A vs local B"]
+    Pairs --> Ransac["RANSAC Sim(3)"]
+    Ransac --> Refine["Umeyama refinement<br/>on inliers"]
+    Refine --> Gates{"All alignment<br/>gates pass?"}
+    Gates -->|yes| Transform["Transform B points<br/>and camera poses"]
+    Transform --> Commit["Atomic commit<br/>append f4 and f5 only"]
+    Commit --> Next["Retain f4 and f5<br/>as the next overlap"]
+    Gates -->|no| Reject["Reject B<br/>no map or pose changes"]
+    Reject --> Retry["Keep f2 and f3<br/>and select replacement frames"]
+```
+
+The [depth-anything.cpp streaming implementation](https://github.com/localai-org/depth-anything.cpp/pull/2) is the closest visual reference for overlap-based Sim(3) stitching and progressive reveal. The [ViSTA-SLAM project page](https://ganlinzhang.xyz/vista-slam) provides a separate monocular example of Sim(3) pose-graph and trajectory visualization. Both are architectural references rather than Jetson performance baselines.
+
 ## Correspondence construction
 
 For each shared frame and pixel, pair:

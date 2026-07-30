@@ -50,6 +50,26 @@ For `N` input views, require:
 | `extrinsics` | `[N, 3, 4]` | OpenCV/Colmap-style world-to-camera transforms |
 | `intrinsics` | `[N, 3, 3]` | Per-view camera matrices |
 
+```mermaid
+flowchart LR
+    Window["N-frame overlapping<br/>RGB window"] --> Model["DA3 Small<br/>any-view inference"]
+    Model --> RGB["processed_images<br/>N x H x W x 3"]
+    Model --> Depth["relative depth<br/>N x H x W"]
+    Model --> Confidence["confidence<br/>N x H x W"]
+    Model --> Intrinsics["intrinsics<br/>N x 3 x 3"]
+    Model --> Extrinsics["world-to-camera poses<br/>N x 3 x 4"]
+    RGB --> Validate["Validate shapes,<br/>grids, and finite values"]
+    Depth --> Validate
+    Confidence --> Validate
+    Intrinsics --> Validate
+    Extrinsics --> Validate
+    Validate --> Filter["Per-frame 40th-percentile<br/>confidence filter"]
+    Filter --> Backproject["Back-project retained pixels<br/>and invert camera poses"]
+    Backproject --> Cloud["Colored local point cloud<br/>in the window frame"]
+```
+
+For visual context, the [official Depth Anything 3 project page](https://depth-anything-3.github.io/) demonstrates video reconstruction, recovered cameras, and large-scale SLAM. The [official interactive demo](https://depth-anything-depth-anything-3.hf.space/?__theme=system) exposes point-cloud, camera, metric-depth, and novel-view outputs. These demonstrate the broader DA3 family, not the locked DA3 Small configuration or its Orin Nano update rate.
+
 Reject a prediction when:
 
 - Any required output is missing or has the wrong shape
