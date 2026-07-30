@@ -4,101 +4,88 @@ aliases:
 tags:
   - capstone
   - jetson
-  - monocular-depth
+  - depth-anything-v3
   - 3d-reconstruction
 status: planning
 ---
 
-# Live Monocular 3D Reconstruction on Jetson Orin Nano
+# Live Any-View 3D Reconstruction on Jetson Orin Nano
 
 > [!abstract] Project in one sentence
-> Use Depth Anything V2 Small to predict metric depth from a calibrated RGB camera, track the resulting synthetic RGB-D stream, and fuse it into a live local 3D reconstruction on a Jetson Orin Nano Super.
+> Adapt Depth Anything V3 Small to an 8 GB Jetson Orin Nano Super for incremental multi-view point-cloud reconstruction with overlapping windows.
 
 ## Research question
 
-> How accurately and efficiently can monocular metric-depth predictions be tracked and fused into a live local 3D reconstruction on a resource-constrained edge platform?
+> How effectively can Depth Anything V3 Small be adapted for incremental, spatially coherent point-cloud reconstruction on an 8 GB edge device?
 
 ## Architecture
 
 ```text
 calibrated RGB camera
-    → undistorted frame
-    → metric Depth Anything V2 Small
-    → synthetic RGB-D
-    → Open3D odometry
-    → keyframe selection
-    → TSDF fusion
-    → live colored point cloud
+    → slow, overlapping frame selection
+    → 4-frame DA3 window with 2 retained overlap frames
+    → relative depth + confidence + intrinsics + camera poses
+    → confidence-filtered window point cloud
+    → overlap-based Sim(3) alignment
+    → bounded global point cloud
+    → live viewer and export
 ```
 
-## Locked direction
+## Locked defaults
 
-- **Scene:** one small indoor room
-- **Model:** Depth Anything V2 Small indoor metric checkpoint
-- **Primary runtime:** TensorRT FP16
-- **Primary input:** 518×518, batch size 1
-- **Depth range:** 0.3-8.0 m
-- **Pose backend:** Open3D hybrid RGB-D odometry
-- **Fusion:** scalable TSDF, 2 cm voxels, 8 cm truncation
-- **Map bound:** 300 accepted keyframes
-- **Platform:** Jetson Orin Nano Super, active cooling, 25 W
-- **Primary contribution:** reconstruction accuracy and stability
-
-## Completion tiers
-
-### Minimum viable
-
-- Calibrated camera
-- Live metric-depth inference
-- Correct per-frame colored point clouds
-- Offline odometry and TSDF fusion
-- Measured-distance accuracy results
-- Saved PLY cloud and trajectory
-
-### Target final
-
-- Live accumulated room-scale point cloud
-- TensorRT FP16 inference
-- Geometry, planar, tracking, drift, latency, memory, power, and thermal evaluation
-- Quality-performance comparison across resolution, voxel size, and power mode
-
-### Stretch
-
-- CUDA-enabled Open3D
-- ORB-SLAM3 loop closure or relocalization
-- RGB-D reference scan
-- Mesh extraction
-- Multi-room or outdoor mapping
+- **Model:** `depth-anything/DA3-SMALL`
+- **Runtime:** official Python API with PyTorch FP16
+- **Primary configuration:** 4 frames, 2-frame overlap, 336 px
+- **Fallback:** 3 frames, 2-frame overlap, 280 px
+- **Memory gate:** peak used memory below 7.0 GB
+- **Confidence filter:** discard the lowest 40% per frame
+- **Map bounds:** 30 accepted windows and 1,000,000 points
+- **Live target:** one accepted viewer update every five seconds
+- **Scale:** arbitrary internal units until an independent 1.0 m reference is applied
 
 ## Project notes
 
-- [[Capstone Proposal]] — motivation, scope, contribution, and success criteria
-- [[Model and Hardware]] — checkpoint, Jetson, camera calibration, and fusion settings
-- [[Deployment Plan]] — staged path from calibration to live TSDF reconstruction
-- [[Evaluation Plan]] — metric-depth, geometry, tracking, drift, and performance tests
-- [[Risks and Limitations]] — predicted-depth, odometry, fusion, and platform risks
+### Proposal
+
+- [[Capstone Proposal]] — submission-ready motivation, objectives, tiers, and success criteria
+- [[Risks and Limitations]] — scale, alignment, deployment, validity, and scope risks
+
+### Design
+
+- [[System Architecture]] — data flow, sliding-window state, queues, and runtime artifacts
+- [[DA3 Model and Outputs]] — checkpoint, inference configuration, output contract, and coordinates
+- [[Window Alignment and Mapping]] — Sim(3) registration, point accumulation, bounds, and metric scaling
+
+### Implementation
+
+- [[Jetson Platform and Feasibility]] — hardware budget, dependency compatibility, and feasibility decision
+- [[Camera and Data Collection]] — calibration, capture settings, recordings, and scale reference
+- [[Deployment Roadmap]] — ordered phases, implementation gates, and deliverables
+
+### Evaluation
+
+- [[Evaluation Plan]] — evaluation questions, locked test configuration, and acceptance summary
+- [[Test Protocols]] — step-by-step resource, geometry, alignment, performance, and stability tests
+- [[Results Templates]] — tables, required figures, and reporting guidance
 
 ## Milestones
 
-- [ ] Record the exact JetPack and dependency versions
-- [ ] Confirm the camera and final capture mode
-- [ ] Calibrate the camera below 0.5 px reprojection error
-- [ ] Validate indoor metric-depth predictions
-- [ ] Generate and export a per-frame point cloud
-- [ ] Record the controlled reconstruction sequences
-- [ ] Complete offline RGB-D odometry
-- [ ] Complete offline TSDF fusion
-- [ ] Export ONNX and build TensorRT FP16 engine
-- [ ] Integrate the bounded live pipeline
-- [ ] Complete measured geometry and plane evaluation
-- [ ] Complete trajectory and closure evaluation
-- [ ] Complete the 15-minute sustained test
-- [ ] Analyze quality-performance trade-offs
+- [ ] Freeze the Jetson software stack and camera mode
+- [ ] Calibrate the camera below 0.5 px mean reprojection error
+- [ ] Pass the DA3 Small resource-feasibility gate
+- [ ] Validate DA3 output shapes and coordinate conventions
+- [ ] Export a confidence-filtered point cloud from one window
+- [ ] Align two recorded windows with Sim(3)
+- [ ] Accumulate a bounded recorded room sweep
+- [ ] Integrate live capture and continual viewer updates
+- [ ] Apply independent scale normalization and measure the doorway
+- [ ] Complete the five-minute performance test
+- [ ] Complete the 15-minute stability run
 
-## Next actions
+## Primary sources
 
-- [ ] Record JetPack, CUDA, cuDNN, TensorRT, Python, and PyTorch versions
-- [ ] Choose and lock the camera resolution, focus, and exposure
-- [ ] Print or obtain an accurately measured checkerboard
-- [ ] Collect calibration images
-- [ ] Download the official indoor metric Small checkpoint
+- [Depth Anything 3 paper](https://arxiv.org/abs/2511.10647)
+- [Official Depth Anything 3 repository](https://github.com/ByteDance-Seed/Depth-Anything-3)
+- [Official DA3 Small model card](https://huggingface.co/depth-anything/DA3-SMALL)
+- [Official DA3 Python API](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/docs/API.md)
+- [Official DA3-Streaming documentation](https://github.com/ByteDance-Seed/Depth-Anything-3/blob/main/da3_streaming/README.md)
