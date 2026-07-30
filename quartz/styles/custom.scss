@@ -1,0 +1,17 @@
+@use "./variables.scss" as *;
+
+// Keep the graph from preserving its desktop canvas width when the responsive
+// layout moves the right sidebar below the article.
+@media all and (max-width: 800px) {
+  .page > #quartz-body .sidebar.right > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .graph,
+  .graph > .graph-outer,
+  .graph canvas {
+    width: 100%;
+    max-width: 100%;
+  }
+}

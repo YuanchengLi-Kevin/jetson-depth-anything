@@ -1,1 +1,48 @@
-.obsidian
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Obsidian workspace state
+.obsidian/
+.trash/
+
+# Dependencies and generated Quartz output
+node_modules/
+public/
+tsconfig.tsbuildinfo
+.quartz-cache/
+.quartz/
+quartz/cli/tui/dist/
+.turbo/
+prof/
+
+# Content that must not be published
+private/
+
+# Local deployment configuration and secrets
+.vercel/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+
+# Test and browser artifacts
+.playwright-mcp/
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Online IDE files
+.replit
+replit.nix
