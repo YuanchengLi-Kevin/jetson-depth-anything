@@ -80,6 +80,10 @@ DA3 is not automatically a complete long-term mapper. Its Small any-view model p
 
 The result will be a reproducible edge-deployment workflow for DA3 Small and a bounded sliding-window mapper designed around the Orin Nano's memory limit. The project will show whether joint any-view depth and pose can replace a separate conventional odometry backend for a short live room scan, how reliably overlapping windows can be joined, and what update rate and resource cost are achievable.
 
+## Related systems and intended outcome
+
+The intended experience is a slower, bounded Jetson adaptation of progressive desktop reconstruction demonstrations: a responsive RGB preview, deliberate movement through one small static room, and a persistent colored point or voxel map updated after each accepted DA3 window. [[Final Demo Target and Reference Systems]] compares this target with DA3-Streaming, the depth-anything.cpp streaming and voxel implementation, ViSTA-SLAM, and supporting RGB-D, SLAM, and viewer systems. Those projects guide the windowing, alignment, map, and presentation design, but their desktop hardware, measured depth sensors, complete SLAM backends, or heavier scene representations are not treated as Orin Nano performance baselines.
+
 ## Success criteria
 
 - The final camera mode has mean calibration reprojection error below 0.5 pixels.
@@ -102,6 +106,7 @@ The required result is a bounded local reconstruction of one small, mostly stati
 - [[System Architecture]]
 - [[DA3 Model and Outputs]]
 - [[Window Alignment and Mapping]]
+- [[Final Demo Target and Reference Systems]]
 - [[Jetson Platform and Feasibility]]
 - [[Evaluation Plan]]
 - [[Risks and Limitations]]

@@ -55,6 +55,7 @@ calibrated RGB camera
 - [[System Architecture]] — data flow, sliding-window state, queues, and runtime artifacts
 - [[DA3 Model and Outputs]] — checkpoint, inference configuration, output contract, and coordinates
 - [[Window Alignment and Mapping]] — Sim(3) registration, point accumulation, bounds, and metric scaling
+- [[Final Demo Target and Reference Systems]] — achievable visual outcome, related projects, and explicit stretch goals
 
 ### Implementation
 
