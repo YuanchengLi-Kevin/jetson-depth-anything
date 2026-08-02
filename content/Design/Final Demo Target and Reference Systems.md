@@ -10,16 +10,34 @@ status: planning
 
 # Final Demo Target and Reference Systems
 
-## Start here: visual demo shortlist
+## Primary visual target
+
+Richard Palethorpe's July 2026 [depth-anything.cpp voxel reconstruction demo](https://x.com/jichiep/status/2074051381887946972) is the clearest visual reference for the intended final experience. It turns phone-camera time-lapse footage into a persistent colored voxel world and presents the reconstruction beside its source frame.
+
+The Jetson demonstration should borrow four presentation qualities from it:
+
+1. **Persistent colored geometry:** accepted observations remain visible as the scene grows.
+2. **Source-frame context:** the live RGB preview makes it clear what the reconstruction is observing.
+3. **Progressive playback:** each accepted window produces a visible mapping update rather than revealing only a finished export.
+4. **Independent navigation:** the accumulated reconstruction can be orbited, zoomed, or otherwise inspected separately from the capture camera.
+
+> [!important] Visual reference—not the Jetson performance baseline
+> The post demonstrates a phone time-lapse processed with a desktop-oriented depth-anything.cpp and SLAM pipeline. It does not establish DA3 Small PyTorch throughput, memory use, or reconstruction quality on an 8 GB Jetson Orin Nano Super. The required project is a slower, bounded indoor adaptation that targets at least one accepted viewer update every five seconds.
+
+The merged [depth-anything.cpp streaming and voxel implementation](https://github.com/localai-org/depth-anything.cpp/pull/2) remains the technical reference behind this effect. It documents the overlapping-window stitching, Sim(3) alignment, accumulation, voxel rendering, trajectory playback, and optional corrective stages that inform the project design.
+
+## Additional visual references
 
 These official demonstrations are the fastest way to understand the intended experience. They are visual and architectural references, not claims about achievable Orin Nano speed or quality.
 
 | Demo | What to watch for | Why it is not the Jetson baseline |
 |---|---|---|
 | [Depth Anything 3 video reconstruction and SLAM gallery](https://depth-anything-3.github.io/) | Multi-view geometry, recovered cameras, and a scene becoming navigable in 3D | The official gallery demonstrates the broader DA3 model family and does not represent DA3 Small PyTorch throughput on an 8 GB Orin |
-| [depth-anything.cpp streaming and voxel implementation](https://github.com/localai-org/depth-anything.cpp/pull/2) | Overlapping windows, progressive reveal, colored points and voxels, camera flythrough, and post-inference seam correction | The implementation can use larger models, windows, desktop GPUs, and optional corrective stages outside the required scope |
+| [depth-anything.cpp streaming and voxel implementation](https://github.com/localai-org/depth-anything.cpp/pull/2) | Technical implementation behind the primary target: overlapping windows, progressive reveal, colored points and voxels, camera flythrough, and post-inference seam correction | The implementation can use larger models, windows, desktop GPUs, and optional corrective stages outside the required scope |
 | [ViSTA-SLAM project gallery](https://ganlinzhang.xyz/vista-slam) and [live-camera video](https://github.com/user-attachments/assets/ac8732d0-4efd-4814-a168-01eae799df7c) | A live monocular viewer containing dense geometry, camera trajectory, and loop-closure structure | ViSTA-SLAM uses a different learned frontend and a complete optimized SLAM backend |
 | [Open3D real-time reconstruction video](https://www.youtube.com/watch?v=pLCVCH7ypI4) | Responsive live capture, continuously maintained geometry, and an interactive reconstruction viewer | Open3D uses measured RGB-D input, making tracking and geometry easier than monocular predicted depth |
+
+<br>
 
 ## Intended experience
 
